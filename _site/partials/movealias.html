@@ -1,0 +1,27 @@
+<div class="row">
+    <div class="col-md-12">
+        <form ng-submit="submit()">
+            <div class="select">
+                <label for="from">From:</label>
+                <select class="form-control" id="from" ng-model="from" name="from" ng-change="fromIndexChanged()">
+                    <option  ng-repeat="(key, value) in status.indices">{{key}}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="to">To:</label>
+                <select class="form-control" id="to" ng-model="to" name="to">
+                    <option  ng-repeat="(key, value) in status.indices">{{key}}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="alias">Alias:</label>
+                <select class="form-control" id="alias" ng-model="alias" name="alias">
+                    <option  ng-repeat="(key, value) in aliases">{{key}}</option>
+                </select>
+            </div>
+
+            <input name="button" type="submit" class="btn btn-default"/>
+
+        </form>
+    </div>
+</div>
