@@ -15,6 +15,11 @@ app.config(['$routeProvider',
                 templateUrl: 'partials/createalias.html',
                 controller: 'CreateAliasController'
             }).
+            .
+            when('/runningprocesses', {
+                templateUrl: 'partials/runningprocesses.html',
+                controller: 'RunningProcessesController'
+            }).
             otherwise({
                 redirectTo: '/'
             });
@@ -101,6 +106,12 @@ app.controller('CreateAliasController', ['$scope', '$http',"urls",  function ($s
         });
     };
 }]);
+
+app.controller('RunningProcessesController', ['$scope', '$http',"urls",  function ($scope, $http, urls) {
+    $http.get(urls.reindex).success(function (response) {
+        $scope.runningProcesses = response;
+    });
+    }]);
 
 app.controller('HeaderController', ['$scope', '$route', '$location', function ($scope, $route, $location) {
     angular.isDefined
