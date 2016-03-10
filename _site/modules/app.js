@@ -28,7 +28,7 @@ app.controller('ReindexController', ['$scope', '$http', "urls", function ($scope
 
     $scope.submit = function () {
         $http.put('/' + $scope.newIndex, $scope.mapping);
-        $http.post('/' + $scope.oldIndex + urls.reindex + $scope.newIndex + "?wait_for_completion=true").success(function (response) {
+        $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex + "?wait_for_completion=true").success(function (response) {
             $scope.newIndex = "";
             $scope.oldIndex = "";
             $scope.mapping = "";
