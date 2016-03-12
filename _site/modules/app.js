@@ -15,7 +15,6 @@ app.config(['$routeProvider',
                 templateUrl: 'partials/createalias.html',
                 controller: 'CreateAliasController'
             }).
-            .
             when('/runningprocesses', {
                 templateUrl: 'partials/runningprocesses.html',
                 controller: 'RunningProcessesController'
@@ -25,7 +24,7 @@ app.config(['$routeProvider',
             });
     }]);
 
-app.controller('ReindexController', ['$scope', '$http', "urls", function ($scope, $http, urls) {
+app.controller('ReindexController', ['$scope', '$http', "urls", "$location", "runningProcessesService", function ($scope, $http, urls, $location, runningProcessesService) {
     $http.get(urls.stats).success(function (response) {
         $scope.status = response;
     });
@@ -33,10 +32,11 @@ app.controller('ReindexController', ['$scope', '$http', "urls", function ($scope
 
     $scope.submit = function () {
         $http.put('/' + $scope.newIndex, $scope.mapping);
-        $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex + "?wait_for_completion=true").success(function (response) {
+        $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex).success(function (response) {
             $scope.newIndex = "";
             $scope.oldIndex = "";
             $scope.mapping = "";
+            $location.path("/runningprocesses");
         });
     }
 
@@ -107,11 +107,21 @@ app.controller('CreateAliasController', ['$scope', '$http',"urls",  function ($s
     };
 }]);
 
-app.controller('RunningProcessesController', ['$scope', '$http',"urls",  function ($scope, $http, urls) {
-    $http.get(urls.reindex).success(function (response) {
-        $scope.runningProcesses = response;
-    });
-    }]);
+app.controller('RunningProcessesController', ['$scope', '$http',"urls", "runningProcessesService",  function ($scope, $http, urls, runningProcessesService) {
+    loadRunningProcesses();
+
+    $scope.delete = function(name) {
+       $http.delete('/' + urls.reindex + '/' + name).success(function(response) {
+            loadRunningProcesses();
+        });
+    }
+
+    function loadRunningProcesses() {
+        $http.get('/' + urls.reindex).success(function (response) {
+            $scope.runningProcesses = response;
+        });
+    }
+}]);
 
 app.controller('HeaderController', ['$scope', '$route', '$location', function ($scope, $route, $location) {
     angular.isDefined
@@ -120,3 +130,15 @@ app.controller('HeaderController', ['$scope', '$route', '$location', function ($
         return current === $location.path();
     };
 }]);
+
+app.factory('runningProcessesService', function() {
+    var savedData = new Array()
+    function addProcess(process) {
+        savedData[process.name] = process;
+    }
+
+    function get(name) {
+        return savedData[name];
+    }
+});
+
