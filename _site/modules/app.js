@@ -33,6 +33,7 @@ app.controller('ReindexController', ['$scope', '$http', "urls", "$location", "ru
     $scope.submit = function () {
         $http.put('/' + $scope.newIndex, $scope.mapping);
         $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex).success(function (response) {
+            runningProcessesService.addProcess({"name" : response.name, "newIndex" : $scope.newIndex, "oldIndex" : $scope.oldIndex})
             $scope.newIndex = "";
             $scope.oldIndex = "";
             $scope.mapping = "";
@@ -50,7 +51,6 @@ app.controller('ReindexController', ['$scope', '$http', "urls", "$location", "ru
             $scope.newIndex = $scope.oldIndex + "-v-1";
         }
         $http.get('/' + $scope.oldIndex + "/_settings,_mappings").success(function (response) {
-            console.log(response);
             $scope.mapping = JSON.stringify(response[$scope.oldIndex], null, 4);
         });
     };
@@ -107,7 +107,7 @@ app.controller('CreateAliasController', ['$scope', '$http',"urls",  function ($s
     };
 }]);
 
-app.controller('RunningProcessesController', ['$scope', '$http',"urls", "runningProcessesService",  function ($scope, $http, urls, runningProcessesService) {
+app.controller('RunningProcessesController', ['$scope', '$http',"urls", "$route", "runningProcessesService",  function ($scope, $http, urls, $route, runningProcessesService) {
     loadRunningProcesses();
 
     $scope.delete = function(name) {
@@ -116,9 +116,43 @@ app.controller('RunningProcessesController', ['$scope', '$http',"urls", "running
         });
     }
 
+    $scope.refresh = function() {
+        $route.reload();
+    }
     function loadRunningProcesses() {
         $http.get('/' + urls.reindex).success(function (response) {
-            $scope.runningProcesses = response;
+            var processes = [];
+            response.names.forEach(function(process) {
+                var additionalInfo = runningProcessesService.get(process);
+                if (angular.isDefined(additionalInfo)) {
+                    $http.get('/' + additionalInfo.oldIndex + urls.stats).success((function(additionalInfo) {
+                        return function(response) {
+                            var indexStats;
+                            for (var key in response.indices) {
+                                if (!response.indices.hasOwnProperty(key)) continue;
+                                indexStats = response.indices[key];
+
+                            }
+                            additionalInfo.docsOld = indexStats.primaries.docs.count;
+                        }
+                    })(additionalInfo));
+                    $http.get('/' + additionalInfo.newIndex + urls.stats).success((function(additionalInfo) {
+                        return function(response) {
+                            var indexStats;
+                            for (var key in response.indices) {
+                                if (!response.indices.hasOwnProperty(key)) continue;
+                                indexStats = response.indices[key];
+
+                            }
+                            additionalInfo.docsNew = indexStats.primaries.docs.count;
+                        }
+                    })(additionalInfo));
+                    processes.push(additionalInfo);
+                } else {
+                    processes.push({"name":process});
+                }
+            });
+            $scope.runningProcesses = processes;
         });
     }
 }]);
@@ -131,14 +165,18 @@ app.controller('HeaderController', ['$scope', '$route', '$location', function ($
     };
 }]);
 
-app.factory('runningProcessesService', function() {
+app.factory('runningProcessesService', [ function() {
+    var factory = {};
     var savedData = new Array()
-    function addProcess(process) {
+    factory.addProcess = function(process) {
         savedData[process.name] = process;
+        console.log(savedData);
     }
 
-    function get(name) {
+    factory.get = function(name) {
         return savedData[name];
     }
-});
+
+    return factory;
+}]);
 
