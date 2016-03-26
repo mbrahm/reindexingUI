@@ -1,22 +1,35 @@
 <div class="row">
-    <div class="col-md-12">
-        <form ng-submit="submit()">
+    <form ng-submit="submit()">
+        <div class="col-md-6">
             <div class="select">
                 <label for="oldIndex">Old:</label>
                 <select class="form-control" id="oldIndex" ng-model="oldIndex" name="oldIndex" ng-change="oldIndexChanged()">
                     <option  ng-repeat="(key, value) in status.indices">{{key}}</option>
                 </select>
             </div>
+        </div>
+        <div class="col-md-6">
             <div class="form-group">
                 <label for="newIndex">New:</label><input name="newIndex" id="newIndex" ng-model="newIndex" type="text" class="form-control"/>
             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="scroll">Scroll (default 1m):</label><input name="scroll" id="scroll" ng-model="scroll" type="text" class="form-control"/>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="size">Size (default 1000):</label><input name="size" id="size" ng-model="size" type="number" step="1" class="form-control"/>
+            </div>
+        </div>
+        <div class="col-md-12">
             <div class="form-group">
                 <label for="mapping">Mapping:</label><textarea name="mapping" id="mapping" ng-model="mapping" rows="20"
                                                                class="form-control"></textarea>
             </div>
 
             <input name="button" type="submit" class="btn btn-default"/>
-
-        </form>
-    </div>
+        </div>
+    </form>
 </div>

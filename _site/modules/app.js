@@ -34,7 +34,18 @@ app.controller('ReindexController', ['$scope', '$http', "urls", "$location", "ru
 
     $scope.submit = function () {
         $http.put('/' + $scope.newIndex, $scope.mapping);
-        $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex).success(function (response) {
+        var reindexingUrl = '/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex;
+        if ($scope.scroll || $scope.size) {
+            reindexingUrl = reindexingUrl + '?';
+        }
+        if ($scope.scroll) {
+            reindexingUrl = reindexingUrl + 'scroll=' + $scope.scroll + '&';
+        }
+        if ($scope.size) {
+            reindexingUrl = reindexingUrl + 'size=' + $scope.size + '&';
+        }
+        console.log(reindexingUrl);
+        $http.post(reindexingUrl).success(function (response) {
             runningProcessesService.addProcess({"name" : response.name, "newIndex" : $scope.newIndex, "oldIndex" : $scope.oldIndex})
             $scope.newIndex = "";
             $scope.oldIndex = "";
