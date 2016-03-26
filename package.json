@@ -1,0 +1,16 @@
+{
+  "name": "reindexingUI",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mbrahm/reindexingUI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mbrahm/reindexingUI.git"
+  },
+  "dependencies": {
+    "gulp": "3.9.1",
+    "gulp-clean": "0.3.2",
+    "gulp-util" : "3.0.7",
+    "run-sequence": "1.1.5"
+  }
+}

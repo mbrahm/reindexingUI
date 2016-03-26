@@ -8,6 +8,7 @@ gulp.task('copy-angular', function() {
         './bower_components/angular/angular.min.js',
         './bower_components/angular-route/angular-route.min.js',
         './bower_components/angular-resource/angular-resource.min.js',
+        './bower_components/angular-local-storage/dist/angular-local-storage.min.js'
     ]).pipe(gulp.dest('_site/angular/'));
 });
 

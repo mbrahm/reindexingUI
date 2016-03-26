@@ -1,7 +1,7 @@
-var app = angular.module('reindexingFront', ['ngRoute', "esurls"]);
+var app = angular.module('reindexingFront', ['ngRoute', 'esurls', 'LocalStorageModule']);
 
-app.config(['$routeProvider',
-    function ($routeProvider) {
+app.config(['$routeProvider','localStorageServiceProvider',
+    function ($routeProvider, localStorageServiceProvider) {
         $routeProvider.
             when('/reindex', {
                 templateUrl: 'partials/reindex.html',
@@ -22,6 +22,8 @@ app.config(['$routeProvider',
             otherwise({
                 redirectTo: '/'
             });
+
+        localStorageServiceProvider.setStorageType('sessionStorage').setPrefix('reindexingUI');
     }]);
 
 app.controller('ReindexController', ['$scope', '$http', "urls", "$location", "runningProcessesService", function ($scope, $http, urls, $location, runningProcessesService) {
@@ -165,16 +167,15 @@ app.controller('HeaderController', ['$scope', '$route', '$location', function ($
     };
 }]);
 
-app.factory('runningProcessesService', [ function() {
+app.factory('runningProcessesService', ['localStorageService', function(localStorageService) {
     var factory = {};
     var savedData = new Array()
     factory.addProcess = function(process) {
-        savedData[process.name] = process;
-        console.log(savedData);
+        localStorageService.set(process.name, process);
     }
 
     factory.get = function(name) {
-        return savedData[name];
+        return localStorageService.get(name);
     }
 
     return factory;
