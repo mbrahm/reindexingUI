@@ -15,12 +15,16 @@ app.config(['$routeProvider',
                 templateUrl: 'partials/createalias.html',
                 controller: 'CreateAliasController'
             }).
+            when('/runningprocesses', {
+                templateUrl: 'partials/runningprocesses.html',
+                controller: 'RunningProcessesController'
+            }).
             otherwise({
                 redirectTo: '/'
             });
     }]);
 
-app.controller('ReindexController', ['$scope', '$http', "urls", function ($scope, $http, urls) {
+app.controller('ReindexController', ['$scope', '$http', "urls", "$location", "runningProcessesService", function ($scope, $http, urls, $location, runningProcessesService) {
     $http.get(urls.stats).success(function (response) {
         $scope.status = response;
     });
@@ -28,10 +32,12 @@ app.controller('ReindexController', ['$scope', '$http', "urls", function ($scope
 
     $scope.submit = function () {
         $http.put('/' + $scope.newIndex, $scope.mapping);
-        $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex + "?wait_for_completion=true").success(function (response) {
+        $http.post('/' + $scope.oldIndex + '/' + urls.reindex + '/' + $scope.newIndex).success(function (response) {
+            runningProcessesService.addProcess({"name" : response.name, "newIndex" : $scope.newIndex, "oldIndex" : $scope.oldIndex})
             $scope.newIndex = "";
             $scope.oldIndex = "";
             $scope.mapping = "";
+            $location.path("/runningprocesses");
         });
     }
 
@@ -45,7 +51,6 @@ app.controller('ReindexController', ['$scope', '$http', "urls", function ($scope
             $scope.newIndex = $scope.oldIndex + "-v-1";
         }
         $http.get('/' + $scope.oldIndex + "/_settings,_mappings").success(function (response) {
-            console.log(response);
             $scope.mapping = JSON.stringify(response[$scope.oldIndex], null, 4);
         });
     };
@@ -102,6 +107,56 @@ app.controller('CreateAliasController', ['$scope', '$http',"urls",  function ($s
     };
 }]);
 
+app.controller('RunningProcessesController', ['$scope', '$http',"urls", "$route", "runningProcessesService",  function ($scope, $http, urls, $route, runningProcessesService) {
+    loadRunningProcesses();
+
+    $scope.delete = function(name) {
+       $http.delete('/' + urls.reindex + '/' + name).success(function(response) {
+            loadRunningProcesses();
+        });
+    }
+
+    $scope.refresh = function() {
+        $route.reload();
+    }
+    function loadRunningProcesses() {
+        $http.get('/' + urls.reindex).success(function (response) {
+            var processes = [];
+            response.names.forEach(function(process) {
+                var additionalInfo = runningProcessesService.get(process);
+                if (angular.isDefined(additionalInfo)) {
+                    $http.get('/' + additionalInfo.oldIndex + urls.stats).success((function(additionalInfo) {
+                        return function(response) {
+                            var indexStats;
+                            for (var key in response.indices) {
+                                if (!response.indices.hasOwnProperty(key)) continue;
+                                indexStats = response.indices[key];
+
+                            }
+                            additionalInfo.docsOld = indexStats.primaries.docs.count;
+                        }
+                    })(additionalInfo));
+                    $http.get('/' + additionalInfo.newIndex + urls.stats).success((function(additionalInfo) {
+                        return function(response) {
+                            var indexStats;
+                            for (var key in response.indices) {
+                                if (!response.indices.hasOwnProperty(key)) continue;
+                                indexStats = response.indices[key];
+
+                            }
+                            additionalInfo.docsNew = indexStats.primaries.docs.count;
+                        }
+                    })(additionalInfo));
+                    processes.push(additionalInfo);
+                } else {
+                    processes.push({"name":process});
+                }
+            });
+            $scope.runningProcesses = processes;
+        });
+    }
+}]);
+
 app.controller('HeaderController', ['$scope', '$route', '$location', function ($scope, $route, $location) {
     angular.isDefined
 
@@ -109,3 +164,19 @@ app.controller('HeaderController', ['$scope', '$route', '$location', function ($
         return current === $location.path();
     };
 }]);
+
+app.factory('runningProcessesService', [ function() {
+    var factory = {};
+    var savedData = new Array()
+    factory.addProcess = function(process) {
+        savedData[process.name] = process;
+        console.log(savedData);
+    }
+
+    factory.get = function(name) {
+        return savedData[name];
+    }
+
+    return factory;
+}]);
+

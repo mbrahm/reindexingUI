@@ -42,10 +42,13 @@
                         <li ng-class="{ active: click('/reindex') }"><a href="#/reindex">Reindexing</a></li>
                         <li ng-class="{ active: click('/createalias') }"><a href="#/createalias">Create Alias</a></li>
                         <li ng-class="{ active: click('/movealias') }"><a href="#/movealias">Move Alias</a></li>
+                        <li ng-class="{ active: click('/runningprocesses') }"><a href="#/runningprocesses">Check</a></li>
                     </ul>
                 </div><!-- /.navbar-collapse -->
             </div><!-- /.container-fluid -->
         </nav>
+    </div>
+    <div class="container-fluid">
         <div ng-view></div>
     </div>
 </div>
@@ -54,12 +57,16 @@
 <!-- Le javascript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="jquery/jquery-1.12.0.min.js"></script>
+<script src="jquery/jquery.min.js"></script>
 <script src="angular/angular.min.js"></script>
-<script src="angular/angular-animate.js"></script>
-<script src="angular/angular-route.js"></script>
+<script src="angular/angular-route.min.js"></script>
 <script src="modules/app.js"></script>
 <script src="modules/esurls.js"></script>
 <script src="bootstrap/js/bootstrap.js"></script>
+<script language="JavaScript">
+    $(document).ready(function(){
+        $('[data-toggle=tooltip]').tooltip();
+    });
+</script>
 </body>
 </html>
